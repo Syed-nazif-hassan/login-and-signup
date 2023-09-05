@@ -27,8 +27,13 @@ app.post("/signup", async (req, res) => {
     Name: req.body.name,
     Password: req.body.password,
   };
-  await collection.insertMany([data]);
-  res.render("home");
+  const usename_available = await collection.findOne({ Name: req.body.name });
+  if (usename_available === null) {
+    await collection.insertMany([data]);
+    res.render("home");
+  } else {
+    res.send("Usename already exists.");
+  }
 });
 app.post("/login", async (req, res) => {
   try {
