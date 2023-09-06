@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const hbs = require("hbs");
+const { validationMiddleware, validationResult } = require("./validators");
 const path = require("path");
 const templatesPath = path.join(__dirname, "../templates");
 const mongoose = require("mongoose");
@@ -22,29 +23,45 @@ app.set("view engine", "hbs");
 app.set("views", templatesPath);
 app.get("/", (req, res) => res.render("login"));
 app.get("/signup", (req, res) => res.render("signup"));
-app.post("/signup", async (req, res) => {
-  const data = {
-    Name: req.body.name,
-    Password: req.body.password,
-  };
-  const usename_available = await collection.findOne({ Name: req.body.name });
-  if (usename_available === null) {
-    await collection.insertMany([data]);
-    res.render("home");
-  } else {
-    res.send("Usename already exists.");
-  }
-});
-app.post("/login", async (req, res) => {
-  try {
-    const user_info = await collection.findOne({ Name: req.body.name });
-    if (user_info.Password === req.body.password) {
+app.post("/signup", validationMiddleware, async (req, res) => {
+  const errors = validationResult(req);
+  if (errors.isEmpty()) {
+    const data = {
+      Name: req.body.username,
+      Password: req.body.password,
+    };
+    const usename_available = await collection.findOne({
+      Name: req.body.username,
+    });
+    if (usename_available === null) {
+      await collection.insertMany([data]);
       res.render("home");
     } else {
-      res.send("Wrong Password");
+      res.send(
+        `Sorry, the username ${req.body.username} is already taken. Please choose a different username to continue with your signup.`
+      );
     }
-  } catch {
-    res.send("Invalid Username");
+  } else {
+    const errorMessage = errors.array().map((error) => error.msg)[0];
+    return res.send(errorMessage);
+  }
+});
+app.post("/login", validationMiddleware, async (req, res) => {
+  const errors = validationResult(req);
+  if (errors.isEmpty()) {
+    try {
+      const user_info = await collection.findOne({ Name: req.body.username });
+      if (user_info.Password === req.body.password) {
+        res.render("home");
+      } else {
+        res.send("Wrong Password");
+      }
+    } catch {
+      res.send("Invalid Username");
+    }
+  } else {
+    const errorMessage = errors.array().map((error) => error.msg)[0];
+    return res.send(errorMessage);
   }
 });
 
