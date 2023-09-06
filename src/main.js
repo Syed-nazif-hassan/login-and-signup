@@ -7,7 +7,7 @@ const templatesPath = path.join(__dirname, "../templates");
 const mongoose = require("mongoose");
 const PORT = 3000;
 const MONGO_DB_URI =
-  "mongodb+srv://cluster1_user:bkD5RUIFUoCo0NW7@cluster1.nltyt7a.mongodb.net/login_signup?retryWrites=true&w=majority";
+  "****";
 const collection = require("./mongodb");
 
 mongoose
